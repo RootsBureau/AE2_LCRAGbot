@@ -1,0 +1,13 @@
+python-dotenv
+streamlit
+lanchain
+lamchain-core
+langchain-community
+langchain-openai
+lanchain-anthropic
+chromadb
+langchain-chroma
+docx2txt
+pymupdf
+bs4
+ipykernel
