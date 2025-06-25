@@ -4,16 +4,13 @@ AE2_LCRAGbot is a bot designed to automate and enhance workflows for the AE2 pro
 
 ## Features
 
-- Automated task management
-- Integration with external APIs
-- Customizable workflows
-- Logging and error handling
+TDB
 
 ## Getting Started
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3
 - Required dependencies listed in `requirements.txt`
 
 ### Installation
@@ -27,17 +24,13 @@ pip install -r requirements.txt
 ### Usage
 
 ```bash
-python main.py
+streamlit run main.py
 ```
 
 ## Configuration
 
-Edit the `config.yaml` file to customize the bot's behavior and integrations.
+TBD
 
 ## Contributing
 
-Contributions are welcome! Please open issues or submit pull requests for improvements.
-
-## License
-
-This project is licensed under the MIT License.
+This is a learnign exersise project
