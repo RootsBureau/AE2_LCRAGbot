@@ -1,6 +1,6 @@
-__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
+#import sys
+#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import streamlit as st
 import os
@@ -25,9 +25,6 @@ MODELS = [
     "openai/gpt-4o-mini",
     "anthropic/claude-3-5-sonnet-20241022",
 ]
-
-default_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
-default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else ""
 
 st.set_page_config(
     page_title="The PMP exam assistant",
