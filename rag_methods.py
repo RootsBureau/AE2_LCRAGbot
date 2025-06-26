@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import dotenv
 import chromadb
+import openai
 
 from time import time
 
@@ -28,9 +29,12 @@ DB_COLLECTION_LIMIT = 20  # Maximum number of collections in the vector store
 def stream_llm_response(llm_stream, messages):
     response_message = "thinking..."
     
-    for chunk in llm_stream.stream(messages):
-        response_message += chunk.content
-        yield chunk
+    try:
+        for chunk in llm_stream.stream(messages):
+            response_message += chunk.content
+            yield chunk
+    except openai.APIConnectionError as e:
+        st.error("Connection to OpenAI failed: " + str(e))
 
     st.session_state.messages.append({"role": "assistant", "content": response_message})
 

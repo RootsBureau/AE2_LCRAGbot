@@ -1,6 +1,6 @@
-__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+#__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
+#import sys
+#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import streamlit as st
 import os
@@ -25,6 +25,9 @@ MODELS = [
     "openai/gpt-4o-mini",
     "anthropic/claude-3-5-sonnet-20241022",
 ]
+
+default_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
+default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else ""
 
 st.set_page_config(
     page_title="The PMP exam assistant",
@@ -65,20 +68,20 @@ with st.sidebar:
     cols0 = st.columns(2)
 
     with cols0[0]:
-        deafult_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
+        default_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else " "
         with st.popover(":lock: OpenAI"):
             openai_api_key = st.text_input(
                 "Add OpenAI API Key:",
-                value=deafult_openai_api_key,
+                value=default_openai_api_key,
                 type="password",
                 placeholder="sk-...",
                 key="openai_api_key",
-                on_change=lambda: st.session_state.update({"openai_api_key": openai_api_key}),
+                on_change=lambda: st.session_state.update({"openai_api_key": st.session_state.openai_api_key}),
                 help="Get your OpenAI API key from https://platform.openai.com/account/api-keys",
             )
     
     with cols0[1]:
-        default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else ""
+        default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else " "
         with st.popover(":lock: Anthropic"):
             anthropic_api_key = st.text_input(
                 "Add Anthropic API Key:",
@@ -86,7 +89,7 @@ with st.sidebar:
                 type="password",
                 placeholder="sk-...",
                 key="anthropic_api_key",
-                on_change=lambda: st.session_state.update({"anthropic_api_key": anthropic_api_key}),
+                on_change=lambda: st.session_state.update({"anthropic_api_key": st.session_state.anthropic_api_key}),
                 help="Get your Anthropic API key from https://console.anthropic.com/account/api-keys",
             )  
 
@@ -95,10 +98,11 @@ with st.sidebar:
 # -------------
 
 # check for API keys
-missing_openai_key = openai_api_key == "" or openai_api_key is None
-missing_anthropic_key = anthropic_api_key == "" or anthropic_api_key is None
+missing_openai_key = openai_api_key == " " or openai_api_key is None
+missing_anthropic_key = anthropic_api_key == " " or anthropic_api_key is None
 if missing_openai_key and missing_anthropic_key:
-    st.warning(":attention: Please provide at least one API key (OpenAI or Anthropic) to use the assistant.")
+     with st.sidebar:
+        st.warning("Provide at least one API key to use the assistant.")
 
 else:
     #-- sidebar
@@ -162,14 +166,14 @@ else:
 model_provider = st.session_state.model.split("/")[0]
 if model_provider == "openai":
     llm_stream = ChatOpenAI(
-        api_key=openai_api_key if "openai_api_key" in st.session_state else None,
+        api_key=openai_api_key if st.session_state.openai_api_key else default_openai_api_key,
         model=st.session_state.model.split("/")[-1],        
         temperature=0.3,
         streaming=True,
     )
 elif model_provider == "anthropic":
     llm_stream = ChatAnthropic(
-        api_key=anthropic_api_key if "anthropic_api_key" in st.session_state else None,
+        api_key=anthropic_api_key if st.session_state.openai_api_key else default_anthropic_api_key,
         model_name=st.session_state.model.split("/")[-1],
         temperature=0.3,
         streaming=True,
@@ -183,21 +187,25 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 #initialize the users prompt and add it to the session state last message
-if prompt := st.chat_input("Your message here..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+if missing_openai_key and missing_anthropic_key:
+    st.warning("⚠️ Please provide at least one API key (OpenAI or Anthropic) to use the assistant.")
 
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
+else:
+    if prompt := st.chat_input("Your message here..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-        messages = [HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"]) for m in st.session_state.messages]
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
 
-        if not st.session_state.use_rag:
-            st.write_stream(stream_llm_response(llm_stream, messages))
-        else:
-            st.write_stream(stream_llm_rag_response(llm_stream, messages))
+            messages = [HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"]) for m in st.session_state.messages]
+
+            if not st.session_state.use_rag:
+                st.write_stream(stream_llm_response(llm_stream, messages))
+            else:
+                st.write_stream(stream_llm_rag_response(llm_stream, messages))
 
 
 
