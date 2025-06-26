@@ -1,6 +1,6 @@
-#__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
-#import sys
-#sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import streamlit as st
 import os
