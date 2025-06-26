@@ -1,3 +1,7 @@
+__import__('pysqlite3')  # Ensure sqlite3 is imported to avoid import errors
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 import streamlit as st
 import os
 import dotenv
@@ -43,10 +47,10 @@ if "rag_sources" not in st.session_state:
     st.session_state.rag_sources = []
 
 if "messages" not in st.session_state:
-    st.session_state.messages = [{
-            "role" : "assistant",
-            "content":"Hi there! How can I help you today?"
-        }
+    st.session_state.messages = [
+        {  "role" : "user", "content" : "Hello!"}, # conversation should start with a user message for antropic                     
+        {   "role" : "assistant", "content":"Hi there! How can I help you today?"
+            }
     ]
 
 # -------------
@@ -68,6 +72,8 @@ with st.sidebar:
                 value=deafult_openai_api_key,
                 type="password",
                 placeholder="sk-...",
+                key="openai_api_key",
+                on_change=lambda: st.session_state.update({"openai_api_key": openai_api_key}),
                 help="Get your OpenAI API key from https://platform.openai.com/account/api-keys",
             )
     
@@ -79,6 +85,8 @@ with st.sidebar:
                 value=default_anthropic_api_key,
                 type="password",
                 placeholder="sk-...",
+                key="anthropic_api_key",
+                on_change=lambda: st.session_state.update({"anthropic_api_key": anthropic_api_key}),
                 help="Get your Anthropic API key from https://console.anthropic.com/account/api-keys",
             )  
 
@@ -154,12 +162,14 @@ else:
 model_provider = st.session_state.model.split("/")[0]
 if model_provider == "openai":
     llm_stream = ChatOpenAI(
+        api_key=openai_api_key if "openai_api_key" in st.session_state else None,
         model=st.session_state.model.split("/")[-1],        
         temperature=0.3,
         streaming=True,
     )
 elif model_provider == "anthropic":
     llm_stream = ChatAnthropic(
+        api_key=anthropic_api_key if "anthropic_api_key" in st.session_state else None,
         model_name=st.session_state.model.split("/")[-1],
         temperature=0.3,
         streaming=True,
