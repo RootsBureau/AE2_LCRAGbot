@@ -1,4 +1,13 @@
 .venv/
 .env
 __pycache__/
+
 *.pyc   
+*.db
+
+#ignore document and vector store files
+vector_store/
+source_files/
+docs/
+chroma_db/
+*.db

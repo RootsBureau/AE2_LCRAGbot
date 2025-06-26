@@ -7,7 +7,12 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import HumanMessage, AIMessage
 
-from rag_methods import stream_llm_response
+from rag_methods import (
+    load_doc_to_db,
+    load_url_to_db,
+    stream_llm_response,
+    stream_llm_rag_response
+)
 
 dotenv.load_dotenv()
 
@@ -44,7 +49,9 @@ if "messages" not in st.session_state:
         }
     ]
 
+# -------------
 # -- Sidebar --
+# -------------
 with st.sidebar:
     deafult_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
     with st.popover(":lock: OpenAI"):
@@ -67,13 +74,16 @@ with st.sidebar:
         )
 
     st.header("Settings")
-    st.selectbox("Select Model", MODELS)
+    #st.selectbox("Select Model", MODELS)
 
     st.markdown("---")
     st.markdown("### Session ID")
     st.markdown(f"**{st.session_state.session_id}**")
 
-# -- Main Content --
+# -------------
+# -- Main Content
+# -------------
+
 # check for API keys
 missing_openai_key = openai_api_key == "" or openai_api_key is None
 missing_anthropic_key = anthropic_api_key == "" or anthropic_api_key is None
@@ -81,7 +91,7 @@ if missing_openai_key and missing_anthropic_key:
     st.warning(":attention: Please provide at least one API key (OpenAI or Anthropic) to use the assistant.")
 
 else:
-    #sidebar
+    #-- sidebar
     with st.sidebar:
         st.divider()
         st.selectbox(
@@ -91,10 +101,48 @@ else:
         )
 
         cols0 = st.columns(2)
+        # RAG toggle 
+        with cols0[0]:
+            is_vector_store_loaded = ("vector_store" in st.session_state and st.session_state.vector_store is not None)
+            st.toggle(
+                "Use RAG",
+                value=is_vector_store_loaded,
+                key="use_rag",
+                help="Enable or disable the use of RAG (Retrieval-Augmented Generation) for answering questions.",
+                disabled=not is_vector_store_loaded
+            )
+        # Clear chat button
         with cols0[1]:
             st.button("clear chat", on_click=lambda: st.session_state.messages.clear(), type="primary")
 
-# -- Chat Interface --
+        # File upload for documents
+        st.header("RAG Sources")
+        st.file_uploader(
+            ":file: Upload documents",
+            type=["pdf", "txt", "docx", "md"],
+            accept_multiple_files=True,
+            on_change=load_doc_to_db,
+            key="rag_docs",
+            help="Drag & drop document (pdf, txt, md, docx) to its content in llm response.",
+        )
+
+        # URL input for RAG
+        st.text_input(
+            ":link: Add URL",
+            placeholder="https://example.com",
+            on_change=load_url_to_db,
+            key="rag_url",
+            help="Add a URL to load its content into the vector store for RAG.",
+        )
+
+        with st.expander(f":document: RAG Sources({0 if not is_vector_store_loaded else len(st.session_state.vector_store.get()['metadatas'])})"):
+            st.write([] if not is_vector_store_loaded else [meta["source"] for meta in st.session_state.vector_store.get()["metadatas"]])
+
+        
+
+# -------------
+# -- Chat Interface
+# -------------
 
 # model selection provider
 model_provider = st.session_state.model.split("/")[0]
@@ -130,7 +178,10 @@ if prompt := st.chat_input("Your message here..."):
 
         messages = [HumanMessage(content=m["content"]) if m["role"] == "user" else AIMessage(content=m["content"]) for m in st.session_state.messages]
 
-        st.write_stream(stream_llm_response(llm_stream, messages))
+        if not st.session_state.use_rag:
+            st.write_stream(stream_llm_response(llm_stream, messages))
+        else:
+            st.write_stream(stream_llm_rag_response(llm_stream, messages))
 
 
 
