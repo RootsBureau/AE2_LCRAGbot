@@ -137,7 +137,7 @@ else:
             help="Add a URL to load its content into the vector store for RAG.",
         )
 
-        with st.expander(f":document: RAG Sources({0 if not is_vector_store_loaded else len(st.session_state.rag_sources)})"):
+        with st.expander(f"📄 RAG Sources: {0 if not is_vector_store_loaded else len(st.session_state.rag_sources)}"):
             st.write([] if not is_vector_store_loaded else [source["source"] for source in st.session_state.vector_store.get()["metadatas"]])
         
         st.divider()

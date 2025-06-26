@@ -161,7 +161,7 @@ def get_coversational_rag_chai(llm):
 
 def stream_llm_rag_response (llm_stream, messages):
     conversation_rag_chain = get_coversational_rag_chai(llm_stream)
-    response_message = "*(RAG Response)*\n"
+    response_message = "RAG'ed Response \n"
     for chunk in conversation_rag_chain.pick("answer").stream({"messages": messages[:-1], "input": messages[-1].content}):
         response_message += chunk
         yield chunk
