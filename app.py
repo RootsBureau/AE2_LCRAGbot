@@ -53,32 +53,34 @@ if "messages" not in st.session_state:
 # -- Sidebar --
 # -------------
 with st.sidebar:
-    deafult_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
-    with st.popover(":lock: OpenAI"):
-        openai_api_key = st.text_input(
-            "Add OpenAI API Key:",
-            value=deafult_openai_api_key,
-            type="password",
-            placeholder="sk-...",
-            help="Get your OpenAI API key from https://platform.openai.com/account/api-keys",
-        )
     
-    default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else ""
-    with st.popover(":lock: Anthropic"):
-        anthropic_api_key = st.text_input(
-            "Add Anthropic API Key:",
-            value=default_anthropic_api_key,
-            type="password",
-            placeholder="sk-...",
-            help="Get your Anthropic API key from https://console.anthropic.com/account/api-keys",
-        )
+    st.header("⚙️ Settings")      
+    st.divider()
+    st.subheader("🔑Model keys")
 
-    st.header("Settings")
-    #st.selectbox("Select Model", MODELS)
+    cols0 = st.columns(2)
 
-    st.markdown("---")
-    st.markdown("### Session ID")
-    st.markdown(f"**{st.session_state.session_id}**")
+    with cols0[0]:
+        deafult_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else ""
+        with st.popover(":lock: OpenAI"):
+            openai_api_key = st.text_input(
+                "Add OpenAI API Key:",
+                value=deafult_openai_api_key,
+                type="password",
+                placeholder="sk-...",
+                help="Get your OpenAI API key from https://platform.openai.com/account/api-keys",
+            )
+    
+    with cols0[1]:
+        default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else ""
+        with st.popover(":lock: Anthropic"):
+            anthropic_api_key = st.text_input(
+                "Add Anthropic API Key:",
+                value=default_anthropic_api_key,
+                type="password",
+                placeholder="sk-...",
+                help="Get your Anthropic API key from https://console.anthropic.com/account/api-keys",
+            )  
 
 # -------------
 # -- Main Content
@@ -118,7 +120,7 @@ else:
         # File upload for documents
         st.header("RAG Sources")
         st.file_uploader(
-            ":file: Upload documents",
+            "📂 Upload documents",
             type=["pdf", "txt", "docx", "md"],
             accept_multiple_files=True,
             on_change=load_doc_to_db,
@@ -128,15 +130,19 @@ else:
 
         # URL input for RAG
         st.text_input(
-            ":link: Add URL",
+            "🔗 Add URL",
             placeholder="https://example.com",
             on_change=load_url_to_db,
             key="rag_url",
             help="Add a URL to load its content into the vector store for RAG.",
         )
 
-        with st.expander(f":document: RAG Sources({0 if not is_vector_store_loaded else len(st.session_state.vector_store.get()['metadatas'])})"):
-            st.write([] if not is_vector_store_loaded else [meta["source"] for meta in st.session_state.vector_store.get()["metadatas"]])
+        with st.expander(f":document: RAG Sources({0 if not is_vector_store_loaded else len(st.session_state.rag_sources)})"):
+            st.write([] if not is_vector_store_loaded else [source["source"] for source in st.session_state.vector_store.get()["metadatas"]])
+        
+        st.divider()
+        st.markdown("### Session ID")
+        st.markdown(f"**{st.session_state.session_id}**")
 
         
 
