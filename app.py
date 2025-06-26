@@ -30,7 +30,7 @@ st.set_page_config(
 )
 
 # -- Header --
-st.html("""<h2 style='text-align: center;'> :books: The PMP Exam Assistant :robot:</h2>""")
+st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant </h2>""")
 
 # -- Initial Setup --
 if "session_id" not in st.session_state:
@@ -45,7 +45,7 @@ if "rag_sources" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = [{
             "role" : "assistant",
-            "content":"Hi there! Ask questions about the PMBOK Guide or from PMP exam. I'll provide you with the detailed information and sources."
+            "content":"Hi there! How can I help you today?"
         }
     ]
 
