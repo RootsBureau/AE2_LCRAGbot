@@ -68,6 +68,7 @@ def load_doc_to_db():
                             st.warning(f"Unsupported file type: {doc_file.type}")
                             continue
 
+                        # Load the documents
                         docs.extend(loader.load())
                         st.session_state.rag_sources.append(doc_file.name)
                         st.success(f"Document {doc_file.name} loaded successfully.")
@@ -94,6 +95,8 @@ def load_url_to_db():
             if len(st.session_state.rag_sources) < DB_DOCS_LIMIT:
                 try:
                     loader = WebBaseLoader(url)
+                    raw_docs = loader.load()
+                    
                     docs.extend(loader.load())
                     st.session_state.rag_sources.append(url)
                     st.success(f"URL {url} loaded successfully.")
@@ -158,8 +161,10 @@ def get_coversational_rag_chai(llm):
 
     prompt = ChatPromptTemplate.from_messages([
        ("system", """You are a helpful assistant that answers user questions based on the provided context.
-         If content matches use the most relevant information from the documents to answer the user's question. If the content does not match, answer based on your knowledge.\n
-         {context}"""),
+                    For each document, the source is indicated, cite the source in your response using.
+                    If content matches use the most relevant information from the documents to answer the user's question. If the content does not match, answer based on your knowledge.\n
+                    Context:            
+                    {context}"""),
         MessagesPlaceholder(variable_name="messages"),
         ("user", "{input}"),
     ])
@@ -169,8 +174,16 @@ def get_coversational_rag_chai(llm):
 
 def stream_llm_rag_response (llm_stream, messages):
     conversation_rag_chain = get_coversational_rag_chai(llm_stream)
-    response_message = "RAG'ed Response \n"
-    for chunk in conversation_rag_chain.pick("answer").stream({"messages": messages[:-1], "input": messages[-1].content}):
-        response_message += chunk
-        yield chunk
+    response_message = "🔎 RAG'ed Response::\n"+"\n"
+    
+    result = conversation_rag_chain.invoke({"messages": messages[:-1], "input": messages[-1].content})
+    
+    # Get unique sources from documents used
+    sources = set(doc.metadata.get("source", "unknown") for doc in result["context"])
+    
+    response_message += result["answer"]
+    response_message += "\n\nSources:\n" + "\n".join(f"- {src}" for src in sources)
+
     st.session_state.messages.append({"role": "assistant", "content": response_message})
+    
+    yield response_message
