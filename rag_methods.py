@@ -161,7 +161,7 @@ def _get_context_retriver_chain(vector_store, llm):
 
     return retriever_chain
 
-def get_coversational_rag_chai(llm):
+def get_coversational_rag_chain(llm):
     reteiver_chain = _get_context_retriver_chain(st.session_state.vector_store, llm)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -179,6 +179,9 @@ def get_coversational_rag_chai(llm):
 
 def stream_llm_rag_response (llm_stream, messages):
     last_input = messages[-1].content.strip()
+    response_message = ""
+    thinking_placeholder = st.empty()
+    thinking_placeholder.markdown("🤔 Thinking...")
 
     # Help function
     if last_input.lower() == "::help":
@@ -250,8 +253,8 @@ def stream_llm_rag_response (llm_stream, messages):
         return
 
     # --- Default: RAG Q&A ---
-    from rag_methods import get_coversational_rag_chai  # optional local import
-    conversation_rag_chain = get_coversational_rag_chai(llm_stream)
+    from rag_methods import get_coversational_rag_chain  # optional local import
+    conversation_rag_chain = get_coversational_rag_chain(llm_stream)
     response_message = "🔎 RAG'ed Response::\n\n"
 
     result = conversation_rag_chain.invoke({
