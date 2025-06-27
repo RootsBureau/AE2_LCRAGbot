@@ -6,8 +6,10 @@ __pycache__/
 *.db
 
 #ignore document and vector store files
+test_data/
 vector_store/
 source_files/
 docs/
 chroma_db/
 *.db
+

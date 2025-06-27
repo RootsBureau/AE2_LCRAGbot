@@ -185,8 +185,17 @@ def stream_llm_rag_response (llm_stream, messages):
         yield response_message
         return
     
+    # Case: Full summary
     if last_input.lower() == "::summarize_documents":
         response_message = cf.summarize_documents(llm_stream)
+        st.session_state.messages.append({"role": "assistant", "content": response_message})
+        yield response_message
+        return
+
+    # Case: Summarize specific file
+    if last_input.lower().startswith("::summarize_source "):
+        filename = last_input[len("::summarize_source "):].strip()
+        response_message =cf.summarize_documents(llm_stream, target_source=filename)
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
         return
