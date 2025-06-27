@@ -24,7 +24,7 @@ dotenv.load_dotenv()
 MODELS = [
     "openai/gpt-4o",
     "openai/gpt-4o-mini",
-    "anthropic/claude-3-5-sonnet-20241022",
+    "anthropic/claude-3-5-sonnet-latest",
 ]
 
 st.set_page_config(
@@ -36,7 +36,7 @@ st.set_page_config(
 
 # -- Header --
 st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant 📚</h2>""")
-st.html("""<h4 style='text-align: center;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
+st.html("""<h4 style='text-align: left;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
         <p><string>To Start:</strong><br/>
         1. Provide the OpenAI or Anthropic api keys<br/>
         2. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
@@ -57,9 +57,8 @@ if "rag_sources" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {  "role" : "user", "content" : "Hello!"}, # conversation should start with a user message for antropic                     
-        {   "role" : "assistant", "content":"Hi there! How can I help you today?"
-            }
+        #{  "role" : "user", "content" : "Hello!"}, # conversation should start with a user message for antropic                     
+        {  "role" : "assistant", "content":"Hi there! How can I help you today?" }
     ]
 
 # -------------
