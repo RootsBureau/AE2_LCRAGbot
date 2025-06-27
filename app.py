@@ -36,12 +36,12 @@ st.set_page_config(
 
 # -- Header --
 st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant 📚</h2>""")
-st.html("""<h3 style='text-align: center;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h3>
-        <p style="strong">To Start:<br/>
-        - Provide the OpenAI or Anthropic api keys<br/>
-        - Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
+st.html("""<h4 style='text-align: center;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
+        <p><string>To Start:</strong><br/>
+        1. Provide the OpenAI or Anthropic api keys<br/>
+        2. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
         or paste the URL<br/>
-        - type ::help for suported commands<br/>
+        3. Type <strong>::help</strong> for suported commands<br/>
         Enjoi!
         </p>""")
 
