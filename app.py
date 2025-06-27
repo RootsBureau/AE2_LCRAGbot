@@ -28,7 +28,7 @@ MODELS = [
 ]
 
 st.set_page_config(
-    page_title="The PMP exam assistant",
+    page_title="The RAG'ed Ai assistant",
     page_icon=":books:",
     layout="centered",
     initial_sidebar_state="expanded",
@@ -36,6 +36,15 @@ st.set_page_config(
 
 # -- Header --
 st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant </h2>""")
+st.html("""<p style='text-align: left;'>
+         Welcome to Ai Assistant that supports Retreval Augmented Generation <br/>
+        To Start:<br/>
+        - Provide the OpenAI or Anthropic api keys<br/>
+        - Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
+        or paste the URL<br/>
+        - type ::help for suported commands<br/>
+        Enjoi!
+        </p>""")
 
 # -- Initial Setup --
 if "session_id" not in st.session_state:
