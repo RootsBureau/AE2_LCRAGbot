@@ -8,9 +8,8 @@ import dotenv
 import chromadb
 import openai
 import call_functions as cf
-import threading
 
-from time import time
+import time
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -30,10 +29,14 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 dotenv.load_dotenv()
 DB_DOCS_LIMIT = 10  # Maximum number of documents to load
 DB_COLLECTION_LIMIT = 50  # Maximum number of collections in the vector store
+# Utility: Animated status dots
+DOTS = ["", ".", "..", "..."]
 
 #function to streetch theresponse of the LLM
 def stream_llm_response(llm_stream, messages):
-    response_message = "thinking..."
+    response_message = ""
+    thinking_placeholder = st.empty()
+    thinking_placeholder.markdown("🤔 Thinking...")
     
     try:
         for chunk in llm_stream.stream(messages):
@@ -115,7 +118,7 @@ def initialize_vector_store(docs):
     vector_store = Chroma.from_documents(
         documents=docs,
         embedding=OpenAIEmbeddings(api_key=st.session_state.openai_api_key),
-        collection_name=f"{str(time()).replace('.', '')[:14]}_" + st.session_state['session_id'], # Unique collection name based on session ID
+        collection_name=f"{str(time.time()).replace('.', '')[:14]}_" + st.session_state['session_id'], # Unique collection name based on session ID
         persist_directory="./vector_store"
     )
 
@@ -175,52 +178,68 @@ def get_coversational_rag_chai(llm):
     return create_retrieval_chain(reteiver_chain, stuff_document_chain)    
 
 def stream_llm_rag_response (llm_stream, messages):
-
-    #Checkinf function calls
     last_input = messages[-1].content.strip()
 
+    # --- ::help ---
+    if last_input.lower() == "::help":
+        response_message = (
+            "🛠️ **Available Commands:**\n"
+            "- `::list_sources` — List loaded documents\n"
+            "- `::summarize_documents` — Summarize all loaded files\n"            
+            "- `::summarize_source filename` — Same as above\n"
+        )
+        st.session_state.messages.append({"role": "assistant", "content": response_message})
+        yield response_message
+        return
+
+    # --- ::list_sources ---
     if last_input.lower() == "::list_sources":
-        placeholder = f"📚 Loading Sources... Please wait."
-        yield placeholder
-        
+        yield "📚 Loading Sources... Please wait."
         sources = cf.list_sources()
         response_message = "📚 **Loaded Sources:**\n" + "\n".join(f"- {s}" for s in sources)
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
         return
-    
-    # Case: Full summary
-    if last_input.lower() == "::summarize_documents":
-        placeholder = "💭 Summarizing all documents... Please wait."
-        yield placeholder  # Show immediate feedback
-        
-        response_message = cf.summarize_documents(llm_stream)
+
+    # --- ::summarize_documents [filename] or ::summarize_source filename ---
+    if last_input.lower().startswith("::summarize_documents") or last_input.lower().startswith("::summarize_source"):
+        command_parts = last_input.split(" ", 1)
+        filename = command_parts[1].strip() if len(command_parts) > 1 else None
+
+        # Normalize path fragment
+        if filename and filename.startswith("./source_files/"):
+            filename = os.path.basename(filename)
+
+        # Animated progress placeholder
+        status_placeholder = st.empty()
+        response_message = None
+        for i in range(6):
+            status_placeholder.markdown(f"💭 Summarizing, please wait{DOTS[i % 4]}")
+            time.sleep(0.1)
+            if i == 2:
+                try:
+                    response_message = cf.summarize_documents(llm_stream, target_source=filename)
+                except Exception as e:
+                    response_message = f"❗ Error during summarization: {e}"
+        status_placeholder.empty()
+
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
         return
 
-    # Case: Summarize specific file
-    if last_input.lower().startswith("::summarize_source "):
-        filename = last_input[len("::summarize_source "):].strip()
-        placeholder = f"💭 Summarizing **{filename}**... Please wait."
-        yield placeholder
-
-        response_message =cf.summarize_documents(llm_stream, target_source=filename)
-        st.session_state.messages.append({"role": "assistant", "content": response_message})
-        yield response_message
-        return
-
+    # --- Default: RAG Q&A ---
+    from rag_methods import get_coversational_rag_chai  # optional local import
     conversation_rag_chain = get_coversational_rag_chai(llm_stream)
-    response_message = "🔎 RAG'ed Response::\n"+"\n"
-    
-    result = conversation_rag_chain.invoke({"messages": messages[:-1], "input": messages[-1].content})
-    
-    # Get unique sources from documents used
+    response_message = "🔎 RAG'ed Response::\n\n"
+
+    result = conversation_rag_chain.invoke({
+        "messages": messages[:-1],
+        "input": messages[-1].content
+    })
+
     sources = set(doc.metadata.get("source", "unknown") for doc in result["context"])
-    
     response_message += result["answer"]
-    response_message += "\n\nSources:\n" + "\n".join(f"- {src}" for src in sources)
+    response_message += "\n\n📎 **Sources:**\n" + "\n".join(f"- {src}" for src in sources)
 
     st.session_state.messages.append({"role": "assistant", "content": response_message})
-    
     yield response_message
