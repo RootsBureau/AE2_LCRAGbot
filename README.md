@@ -12,14 +12,19 @@ https://rag-ed-assistant-ai.streamlit.app/
 ## Features
 
 - LLm chantbot with model selection option
-- upload documanent or URL to include informaton in llm responses context (RAG)
+- Upload documanent or URL to include informaton in llm responses context (RAG)
+- Functions calling support:
+     🛠️ Available Commands:"
+            ::list_sources` — List loaded documents
+            ::summarize_documents` — Summarize all loaded files
+            ::summarize_source <filename>` — Summarize defined <filename> document
+            ::status` — Show documents loased and collection status and limits
+            ::clear_collections` — Clears vector colection
 
-- upcoming: 
-    1. Functions calling support
-    2. RAG document srouce outout if used in responses
-    3. model usage output
-    4. Prompt templates for specific use cases
-    5. Progress indicators
+- upcoming:
+    1. model usage output
+    2. Prompt templates for specific use cases
+    3. Progress indicators
 
 ## Getting Started
 
