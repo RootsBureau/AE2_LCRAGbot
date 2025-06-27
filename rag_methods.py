@@ -7,6 +7,7 @@ import os
 import dotenv
 import chromadb
 import openai
+import call_functions as cf
 
 from time import time
 
@@ -27,7 +28,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 
 dotenv.load_dotenv()
 DB_DOCS_LIMIT = 10  # Maximum number of documents to load
-DB_COLLECTION_LIMIT = 20  # Maximum number of collections in the vector store
+DB_COLLECTION_LIMIT = 50  # Maximum number of collections in the vector store
 
 #function to streetch theresponse of the LLM
 def stream_llm_response(llm_stream, messages):
@@ -173,6 +174,23 @@ def get_coversational_rag_chai(llm):
     return create_retrieval_chain(reteiver_chain, stuff_document_chain)    
 
 def stream_llm_rag_response (llm_stream, messages):
+
+    #Checkinf function calls
+    last_input = messages[-1].content.strip()
+
+    if last_input.lower() == "::list_sources":
+        sources = cf.list_sources()
+        response_message = "📚 **Loaded Sources:**\n" + "\n".join(f"- {s}" for s in sources)
+        st.session_state.messages.append({"role": "assistant", "content": response_message})
+        yield response_message
+        return
+    
+    if last_input.lower() == "::summarize_documents":
+        response_message = cf.summarize_documents(llm_stream)
+        st.session_state.messages.append({"role": "assistant", "content": response_message})
+        yield response_message
+        return
+
     conversation_rag_chain = get_coversational_rag_chai(llm_stream)
     response_message = "🔎 RAG'ed Response::\n"+"\n"
     
