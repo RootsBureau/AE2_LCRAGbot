@@ -8,6 +8,7 @@ import dotenv
 import chromadb
 import openai
 import call_functions as cf
+import threading
 
 from time import time
 
@@ -179,6 +180,9 @@ def stream_llm_rag_response (llm_stream, messages):
     last_input = messages[-1].content.strip()
 
     if last_input.lower() == "::list_sources":
+        placeholder = f"📚 Loading Sources... Please wait."
+        yield placeholder
+        
         sources = cf.list_sources()
         response_message = "📚 **Loaded Sources:**\n" + "\n".join(f"- {s}" for s in sources)
         st.session_state.messages.append({"role": "assistant", "content": response_message})
@@ -187,6 +191,9 @@ def stream_llm_rag_response (llm_stream, messages):
     
     # Case: Full summary
     if last_input.lower() == "::summarize_documents":
+        placeholder = "💭 Summarizing all documents... Please wait."
+        yield placeholder  # Show immediate feedback
+        
         response_message = cf.summarize_documents(llm_stream)
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
@@ -195,6 +202,9 @@ def stream_llm_rag_response (llm_stream, messages):
     # Case: Summarize specific file
     if last_input.lower().startswith("::summarize_source "):
         filename = last_input[len("::summarize_source "):].strip()
+        placeholder = f"💭 Summarizing **{filename}**... Please wait."
+        yield placeholder
+
         response_message =cf.summarize_documents(llm_stream, target_source=filename)
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
