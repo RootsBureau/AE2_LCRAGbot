@@ -186,12 +186,26 @@ def stream_llm_rag_response (llm_stream, messages):
             "🛠️ **Available Commands:**\n"
             "- `::list_sources` — List loaded documents\n"
             "- `::summarize_documents` — Summarize all loaded files\n"            
-            "- `::summarize_source filename` — Same as above\n"
+            "- `::summarize_source filename` — Summarize <filename> document \n"
+            "- `::clear_collections` — clears vector colection\n"
         )
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
         return
 
+    #Clering the vector store collections
+    if last_input.lower() == "::clear_collections":
+        status_msg = st.empty()
+        dots = ["", ".", "..", "..."]
+        for i in range(6):
+            status_msg.markdown(f"🧹 Clearing collections{dots[i % 4]}")
+            time.sleep(0.3)
+        result = cf.clear_vector_store_collections()
+        status_msg.empty()
+        st.session_state.messages.append({"role": "assistant", "content": result})
+        yield result
+        return
+    
     # --- ::list_sources ---
     if last_input.lower() == "::list_sources":
         yield "📚 Loading Sources... Please wait."

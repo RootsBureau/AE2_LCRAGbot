@@ -1,6 +1,8 @@
 import streamlit as st
 import os
+import chromadb
 from langchain_core.prompts import ChatPromptTemplate
+
 
 def list_sources():
     return st.session_state.get("rag_sources", [])
@@ -45,3 +47,13 @@ def summarize_documents(llm, target_source=None):
         summaries.append(f"📄 **{filename}**\n\n{summary.strip()}")
 
     return "\n\n---\n\n".join(summaries)
+
+def clear_vector_store_collections():
+    try:
+        chroma_client = chromadb.PersistentClient(path="./vector_store")
+        collections = chroma_client.list_collections()
+        for c in collections:
+            chroma_client.delete_collection(name=c.name)
+        return f"🧹 Cleared {len(collections)} collections."
+    except Exception as e:
+        return f"⚠️ Failed to clear collections: {e}"

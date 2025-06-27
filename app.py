@@ -7,6 +7,7 @@ import os
 import dotenv
 import uuid
 
+from call_functions import clear_vector_store_collections
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import HumanMessage, AIMessage
@@ -145,6 +146,10 @@ else:
             key="rag_url",
             help="Add a URL to load its content into the vector store for RAG.",
         )
+
+        if st.button("🧹 Clear All Vector Store Collections"):
+            msg = clear_vector_store_collections()
+            st.toast(msg, icon="✅" if "Cleared" in msg else "⚠️")
 
         with st.expander(f"📄 RAG Sources: {0 if not is_vector_store_loaded else len(st.session_state.rag_sources)}"):
             st.write([] if not is_vector_store_loaded else [source["source"] for source in st.session_state.vector_store.get()["metadatas"]])
