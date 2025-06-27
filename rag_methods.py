@@ -180,19 +180,27 @@ def get_coversational_rag_chai(llm):
 def stream_llm_rag_response (llm_stream, messages):
     last_input = messages[-1].content.strip()
 
-    # --- ::help ---
+    # Help function
     if last_input.lower() == "::help":
         response_message = (
             "🛠️ **Available Commands:**\n"
             "- `::list_sources` — List loaded documents\n"
             "- `::summarize_documents` — Summarize all loaded files\n"            
-            "- `::summarize_source filename` — Summarize <filename> document \n"
-            "- `::clear_collections` — clears vector colection\n"
+            "- `::summarize_source <filename>` — Summarize defined <filename> document\n"
+             "- `::status` — Show documents loased and collection status and limits\n"
+            "- `::clear_collections` — Clears vector colection\n"
         )
         st.session_state.messages.append({"role": "assistant", "content": response_message})
         yield response_message
         return
 
+    # RAG status
+    if last_input.lower() == "::status":
+        info = cf.get_status_info()
+        st.session_state.messages.append({"role": "assistant", "content": info})
+        yield info
+        return
+    
     #Clering the vector store collections
     if last_input.lower() == "::clear_collections":
         status_msg = st.empty()

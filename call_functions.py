@@ -2,6 +2,7 @@ import streamlit as st
 import os
 import chromadb
 from langchain_core.prompts import ChatPromptTemplate
+from rag_methods import DB_DOCS_LIMIT, DB_COLLECTION_LIMIT
 
 
 def list_sources():
@@ -57,3 +58,18 @@ def clear_vector_store_collections():
         return f"🧹 Cleared {len(collections)} collections."
     except Exception as e:
         return f"⚠️ Failed to clear collections: {e}"
+    
+def get_status_info():
+
+    doc_count = len(st.session_state.get("rag_sources", []))
+
+    try:
+        chroma_client = chromadb.PersistentClient(path="./vector_store")
+        collection_count = len(chroma_client.list_collections())
+    except Exception as e:
+        collection_count = "❓"
+
+    return (
+        f"  📄 **Documents loaded**: {doc_count} / {DB_DOCS_LIMIT}\n\n"
+        f"  🧠 **Vector collections**: {collection_count} / {DB_COLLECTION_LIMIT}"
+    )
