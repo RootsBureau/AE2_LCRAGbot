@@ -1,6 +1,6 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules["pysqlite3"]
+#__import__('pysqlite3')
+#import sys
+#sys.modules['sqlite3'] = sys.modules["pysqlite3"]
 
 import streamlit as st
 import os
@@ -61,6 +61,9 @@ if "messages" not in st.session_state:
         {  "role" : "assistant", "content":"Hi there! How can I help you today?" }
     ]
 
+if "total_tokens" not in st.session_state:
+    st.session_state.total_tokens = 0
+
 # -------------
 # -- Sidebar --
 # -------------
@@ -97,6 +100,12 @@ with st.sidebar:
                 on_change=lambda: st.session_state.update({"anthropic_api_key": st.session_state.anthropic_api_key}),
                 help="Get your Anthropic API key from https://console.anthropic.com/account/api-keys",
             )  
+    
+    st.divider()
+    st.markdown(f"🧾 **Total Tokens Used**: `{st.session_state.total_tokens:,}`")
+    # Optionally: estimate $ cost
+    estimated_cost = st.session_state.total_tokens / 1_000_000 * 0.10  # adjust per model
+    st.markdown(f"💵 **Est. Cost**: `${estimated_cost:.4f}`")
 
 # -------------
 # -- Main Content

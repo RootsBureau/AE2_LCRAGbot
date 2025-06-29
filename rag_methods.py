@@ -1,6 +1,6 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules["pysqlite3"]
+#__import__('pysqlite3')
+#import sys
+#sys.modules['sqlite3'] = sys.modules["pysqlite3"]
 
 import streamlit as st
 import os
@@ -13,6 +13,7 @@ import time
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.outputs import LLMResult
 from langchain_community.document_loaders.text import TextLoader
 from langchain_community.document_loaders import (
     WebBaseLoader,
@@ -24,7 +25,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI,  OpenAIEmbeddings
 from langchain_anthropic import ChatAnthropic
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain 
 
 dotenv.load_dotenv()
 DB_DOCS_LIMIT = 10  # Maximum number of documents to load
@@ -140,12 +141,16 @@ def _split_and_add_docs_to_db(docs):
         chunk_overlap=200
     )
 
-    docuemtnt_chunk = text_splitter.split_documents(docs)
+    document_chunk = text_splitter.split_documents(docs)
+
+    # Estimate tokens
+    total_tokens = cf.count_tokens_for_embedding([doc.page_content for doc in document_chunk], model=st.session_state["model"])
+    st.session_state.total_tokens += total_tokens
 
     if "vector_store" not in st.session_state:
         st.session_state.vector_store = initialize_vector_store(docs) # Initialize vector store if not already done
     else:
-        st.session_state.vector_store.add_documents(docuemtnt_chunk) # Add documents to the existing vector store
+        st.session_state.vector_store.add_documents(document_chunk) # Add documents to the existing vector store
 
 # -------------------
 # -- Retrieving Augmented Generation (RAG) 
@@ -258,14 +263,28 @@ def stream_llm_rag_response (llm_stream, messages):
     conversation_rag_chain = get_coversational_rag_chain(llm_stream)
     response_message = "🔎 RAG'ed Response::\n\n"
 
-    result = conversation_rag_chain.invoke({
+    result: dict = conversation_rag_chain.invoke({
         "messages": messages[:-1],
         "input": messages[-1].content
     })
-
+    
+    answer = result["answer"]
     sources = set(doc.metadata.get("source", "unknown") for doc in result["context"])
     response_message += result["answer"]
-    response_message += "\n\n📎 **Sources:**\n" + "\n".join(f"- {src}" for src in sources)
+     # Track tokens from LLM output (estimate if metadata not available)
+    if hasattr(result, "response_metadata"):
+        usage = result.response_metadata.get("token_usage", {})
+        model = result.response_metadata.get("model", "Unknown model")
+        tokens_used = usage.get("total_tokens", 0)
+    else:
+        model = "Unknown"
+        tokens_used = len(answer.split())  # crude estimate fallback
+
+    response_message += (        
+        f"📚 **Sources**:\n" + "\n".join(f"- {src}" for src in sources) + "\n\n"
+        f"🧠 **Model**: { st.session_state["model"]} | :1234: **Tokens used**: {tokens_used:,}"
+    )
 
     st.session_state.messages.append({"role": "assistant", "content": response_message})
+    st.session_state.total_tokens += tokens_used
     yield response_message

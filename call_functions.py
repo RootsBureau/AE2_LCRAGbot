@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import chromadb
+import tiktoken
 from langchain_core.prompts import ChatPromptTemplate
 from rag_methods import DB_DOCS_LIMIT, DB_COLLECTION_LIMIT
 
@@ -73,3 +74,15 @@ def get_status_info():
         f"  📄 **Documents loaded**: {doc_count} / {DB_DOCS_LIMIT}\n\n"
         f"  🧠 **Vector collections**: {collection_count} / {DB_COLLECTION_LIMIT}"
     )
+
+def count_tokens_for_embedding(texts: list[str], model: str = "text-embedding-3-small") -> int:
+    """
+    Estimate token usage for a list of texts, falling back to a generic encoding if model is unknown.
+    """
+    try:
+        encoding = tiktoken.encoding_for_model(model)
+    except KeyError:
+        encoding = tiktoken.get_encoding("cl100k_base")  # Safest fallback for most OpenAI models
+
+    total = sum(len(encoding.encode(t)) for t in texts)
+    return total
