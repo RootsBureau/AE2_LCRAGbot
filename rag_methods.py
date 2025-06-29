@@ -178,10 +178,11 @@ def get_coversational_rag_chain(llm):
     return create_retrieval_chain(reteiver_chain, stuff_document_chain)    
 
 def stream_llm_rag_response (llm_stream, messages):
-    last_input = messages[-1].content.strip()
     response_message = ""
     thinking_placeholder = st.empty()
-    thinking_placeholder.markdown("🤔 Thinking...")
+    thinking_placeholder.markdown("🤔 Thinking...")    
+    
+    last_input = messages[-1].content.strip()
 
     # Help function
     if last_input.lower() == "::help":
@@ -217,7 +218,7 @@ def stream_llm_rag_response (llm_stream, messages):
         yield result
         return
     
-    # --- ::list_sources ---
+    # List sources
     if last_input.lower() == "::list_sources":
         yield "📚 Loading Sources... Please wait."
         sources = cf.list_sources()
@@ -226,7 +227,7 @@ def stream_llm_rag_response (llm_stream, messages):
         yield response_message
         return
 
-    # --- ::summarize_documents [filename] or ::summarize_source filename ---
+    # Summarize docs all or [filename]
     if last_input.lower().startswith("::summarize_documents") or last_input.lower().startswith("::summarize_source"):
         command_parts = last_input.split(" ", 1)
         filename = command_parts[1].strip() if len(command_parts) > 1 else None

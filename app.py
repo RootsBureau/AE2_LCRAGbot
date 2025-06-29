@@ -38,7 +38,7 @@ st.set_page_config(
 st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant 📚</h2>""")
 st.html("""<h4 style='text-align: left;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
         <p><string>To Start:</strong><br/>
-        1. Provide the OpenAI or Anthropic api keys<br/>
+        1. Provide the OpenAI api key and Anthropic api keysto be able to select sonnet model<br/>
         2. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
         or paste the URL<br/>
         3. Type <strong>::help</strong> for suported commands<br/>
@@ -74,7 +74,7 @@ with st.sidebar:
 
     with cols0[0]:
         default_openai_api_key = os.getenv("OPENAI_API_KEY", "") if os.getenv("OPENAI_API_KEY") is not None else " "
-        with st.popover(":lock: OpenAI"):
+        with st.popover(":lock:  OpenAI"):
             openai_api_key = st.text_input(
                 "Add OpenAI API Key:",
                 value=default_openai_api_key,
@@ -87,7 +87,7 @@ with st.sidebar:
     
     with cols0[1]:
         default_anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "") if os.getenv("ANTHROPIC_API_KEY") is not None else " "
-        with st.popover(":lock: Anthropic"):
+        with st.popover(":lock:  Anthropic"):
             anthropic_api_key = st.text_input(
                 "Add Anthropic API Key:",
                 value=default_anthropic_api_key,
@@ -114,7 +114,7 @@ else:
     with st.sidebar:
         st.divider()
         st.selectbox(
-            "Select Model",
+            "Select Model",#to do review key check
             [model for model in MODELS if ("openai" in model and not missing_openai_key) or ("anthropic" in model and not missing_anthropic_key)],
             key="model"
         )
