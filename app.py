@@ -38,10 +38,11 @@ st.set_page_config(
 st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant 📚</h2>""")
 st.html("""<h4 style='text-align: left;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
         <p><string>To Start:</strong><br/>
-        1. Provide the OpenAI api key and Anthropic api keysto be able to select sonnet model<br/>
-        2. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
+        1. Please provide at least one API key (OpenAI or Anthropic) to use the assistant.<br/>
+        2. OpenAI key is reqiured to use RAG.
+        3. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
         or paste the URL<br/>
-        3. Type <strong>::help</strong> for suported commands<br/>
+        4. Type <strong>::help</strong> for suported commands<br/>
         Enjoi!
         </p>""")
 
@@ -217,7 +218,7 @@ for message in st.session_state.messages:
 
 #initialize the users prompt and add it to the session state last message
 if missing_openai_key and missing_anthropic_key:
-    st.warning("⚠️ Please provide at least one API key (OpenAI or Anthropic) to use the assistant.")
+    st.warning("⚠️ Please provide at least one API key (OpenAI or Anthropic) to use the assistant. OpenAI key is reqiured to use RAG.")
 
 else:
     if prompt := st.chat_input("Your message here..."):
