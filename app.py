@@ -39,7 +39,7 @@ st.html("""<h2 style='text-align: center;'> 📚 RAG'ed Ai Assistant 📚</h2>""
 st.html("""<h4 style='text-align: left;'> Welcome to Ai Assistant that supports Retreval Augmented Generation </h4>
         <p><string>To Start:</strong><br/>
         1. Please provide at least one API key (OpenAI or Anthropic) to use the assistant.<br/>
-        2. OpenAI key is reqiured to use RAG.
+        2. OpenAI key is reqiured to use RAG.</br>
         3. Drop your knowlegde base files (txt, docx, pdf or md) into the file upload field<br/>
         or paste the URL<br/>
         4. Type <strong>::help</strong> for suported commands<br/>
