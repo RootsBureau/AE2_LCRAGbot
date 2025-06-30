@@ -56,10 +56,17 @@ def clear_vector_store_collections():
         collections = chroma_client.list_collections()
         for c in collections:
             chroma_client.delete_collection(name=c.name)
-        return f"🧹 Cleared {len(collections)} collections."
+            if "vector_store" in st.session_state:
+                st.session_state.vector_store = None
+            if "rag_sources" in st.session_state:
+                st.session_state.rag_sources = []
+        return f"🧹 Cleared {len(collections)} collections."            
     except Exception as e:
         return f"⚠️ Failed to clear collections: {e}"
     
+
+
+
 def get_status_info():
 
     doc_count = len(st.session_state.get("rag_sources", []))

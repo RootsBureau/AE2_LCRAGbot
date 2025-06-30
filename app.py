@@ -175,7 +175,11 @@ else:
                 st.toast(msg, icon="✅" if "Cleared" in msg else "⚠️")
 
         with st.expander(f"📄 RAG Sources: {0 if not is_vector_store_loaded else len(st.session_state.rag_sources)}"):
-            st.write([] if not is_vector_store_loaded else [source["source"] for source in st.session_state.vector_store.get()["metadatas"]])
+            if not st.session_state.get("vector_store"):
+                st.write([])
+            else:
+                vector_data = st.session_state.vector_store.get()
+                st.write([source.get("source", "unknown") for source in vector_data.get("metadatas", [])])
         
         st.divider()
         st.markdown("### Session ID")

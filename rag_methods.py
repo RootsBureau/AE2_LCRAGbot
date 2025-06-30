@@ -33,6 +33,10 @@ DB_COLLECTION_LIMIT = 50  # Maximum number of collections in the vector store
 # Utility: Animated status dots
 DOTS = ["", ".", "..", "..."]
 
+def validate_openai_api_key(api_key: str) -> bool:
+    """Check if the provided OpenAI API key is likely valid format."""
+    return bool(api_key and api_key.startswith("sk-") and len(api_key) > 20)
+
 #function to streetch theresponse of the LLM
 def stream_llm_response(llm_stream, messages):
     response_message = ""
@@ -136,6 +140,12 @@ def initialize_vector_store(docs):
 
 # Function to split documents and add them to the vector store
 def _split_and_add_docs_to_db(docs):
+
+    api_key = st.session_state.get("openai_api_key", "")
+    if not validate_openai_api_key(api_key):
+        st.error("❌ Missing or invalid OpenAI API key. Please set a valid key in the sidebar.")
+        return
+
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200
@@ -147,7 +157,7 @@ def _split_and_add_docs_to_db(docs):
     total_tokens = cf.count_tokens_for_embedding([doc.page_content for doc in document_chunk], model=st.session_state["model"])
     st.session_state.total_tokens += total_tokens
 
-    if "vector_store" not in st.session_state:
+    if "vector_store" not in st.session_state or st.session_state.vector_store is None:
         st.session_state.vector_store = initialize_vector_store(docs) # Initialize vector store if not already done
     else:
         st.session_state.vector_store.add_documents(document_chunk) # Add documents to the existing vector store
@@ -216,10 +226,12 @@ def stream_llm_rag_response (llm_stream, messages):
         dots = ["", ".", "..", "..."]
         for i in range(6):
             status_msg.markdown(f"🧹 Clearing collections{dots[i % 4]}")
-            time.sleep(0.3)
+            time.sleep(0.1)
         result = cf.clear_vector_store_collections()
         status_msg.empty()
         st.session_state.messages.append({"role": "assistant", "content": result})
+        st.session_state.vector_store = None
+        st.session_state.rag_sources = []
         yield result
         return
     
