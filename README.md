@@ -21,8 +21,8 @@ https://rag-ed-assistant-ai.streamlit.app/
             ::status` — Show documents loased and collection status and limits
             ::clear_collections` — Clears vector colection
 
+- model usage output: show model, tokens used and estemates cost
 - upcoming:
-    1. model usage output
     2. Prompt templates for specific use cases
     3. Progress indicators
 
