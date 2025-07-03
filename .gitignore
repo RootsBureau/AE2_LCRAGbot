@@ -12,4 +12,5 @@ source_files/
 docs/
 chroma_db/
 *.db
+raglc.ipynb
 
